@@ -1,0 +1,34 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+title Device Management Service Component Diagram
+
+Container(ApiGateway, "API Gateway", "Kong", "Routing + Balancing")
+ContainerQueue(Kafka, "Event Store", "Kafka", "Event storage for events")
+System_Ext(SmartDevice, "Smart Device", "Devices that are connected to the Smart Home System")
+
+Container(DeviceManagement, "Device Management Service"){
+    Component(Api, "REST API", "", "Incoming requests processing")
+    Component(Producer, "Producer", "", "Producer for events (notifications mostly)")
+    Component(BackgroundJob, "Background Job", "", "Process commands for devices in background")
+    Component(ExternalApi, "External API Caller", "", "HTTP/gRPC lib for external API calls")
+    Component(BusinessLogic, "Business Logic", "", "validation, logging, metrics, etc.")
+    Component(Persistence, "Persistence Layer", "", "CRUD for data")
+}
+
+ContainerDb(DeviceManagementDB, "Device Management DB", "PostgreSQL", "DB for devices data")
+
+Rel(ApiGateway, Api, "REST operations from user")
+
+Rel(Api, BusinessLogic, "process requests")
+
+Rel(BusinessLogic, Persistence, "ActiveRecord commands")
+Rel(BusinessLogic, Producer, "Produce events to event storage")
+Rel(BusinessLogic, BackgroundJob, "Process commands for devices in background")
+Rel(BackgroundJob, ExternalApi, "Call external API")
+
+Rel(Producer, Kafka, "Produce devices events")
+Rel(ExternalApi, SmartDevice, "Send command to device")
+Rel(Persistence, DeviceManagementDB, "CRUD operations")
+
+@enduml

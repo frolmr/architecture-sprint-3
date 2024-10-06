@@ -1,0 +1,84 @@
+services:
+  telemetry:
+    build:
+      dockerfile: ./telemetry_service/Dockerfile
+    depends_on:
+      - telemetry-db
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/telemetry
+    volumes:
+      - ./app:/app
+    command: bundle exec puma -C config/puma.rb
+
+  device-management:
+    build:
+      dockerfile: ./device_management/Dockerfile
+    depends_on:
+      - device-management-db
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/device-mangement
+    volumes:
+      - ./app:/app
+    command: bundle exec puma -C config/puma.rb
+
+  kong-db:
+    image: postgres:14
+    container_name: kong-db
+    environment:
+      POSTGRES_USER: kong
+      POSTGRES_DB: kong
+      POSTGRES_PASSWORD: kong
+
+  kong-migrations:
+    image: kong:latest
+    container_name: kong-migrations
+    depends_on:
+      - kong-db
+    restart: on-failure
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-db
+      KONG_PG_PASSWORD: kong
+    command: kong migrations bootstrap
+
+  kong:
+    image: kong:latest
+    container_name: kong
+    restart: always
+    depends_on:
+      - kong-db
+      - kong-migrations
+      - telemetry
+      - device-management
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-db
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kong
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+
+  telemetry-db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=telemetry
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - ./telemetry_service/dump.sql:/docker-entrypoint-initdb.d/dump.sql
+
+  device-management-db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=device-management
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - ./device_management/dump.sql:/docker-entrypoint-initdb.d/dump.sql
+

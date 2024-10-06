@@ -1,0 +1,15 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+title SmartHome Context Diagram
+
+Person(user, "User", "The user of the smart home system")
+System(SmartHomeSystem, "SmartHome System", "Smart device management system in homes")
+
+System_Ext(SmartDevice, "Smart Device", "Devices that are connected to the Smart Home System")
+
+Rel(user, SmartHomeSystem, "Uses System")
+Rel(SmartHomeSystem, SmartDevice, "Calls commands to control the device")
+Rel(SmartDevice, SmartHomeSystem, "Sends data")
+
+@enduml

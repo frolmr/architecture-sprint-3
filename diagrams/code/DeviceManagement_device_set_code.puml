@@ -1,0 +1,15 @@
+@startuml
+actor User
+
+User -> "REST API + Business logic": Set device value
+"REST API + Business logic" -> User: Ok
+"REST API + Business logic" -> "Background Job": Send command to device
+"Background Job" -> "External API Caller": Call device API
+"External API Caller" -> "Smart Device": Command
+"Smart Device" -> "REST API + Business logic": Command executed
+"REST API + Business logic" -> "DB": Save device state
+"REST API + Business logic" -> "Producer": Send message to topic
+"Producer" -> "Notification service": Notify user
+"Notification service" -> User: Push notification
+
+@enduml
