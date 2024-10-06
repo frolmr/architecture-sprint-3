@@ -1,0 +1,49 @@
+@startuml
+
+hide circle
+skinparam linetype ortho
+
+entity "User" as u {
+  *user_id : uuid <<generated>>
+  --
+  *name : text
+}
+
+entity "House" as h {
+  *house_id : uuid <<generated>>
+  --
+  address : text
+  --
+  *user_id: uuid <<FK>>
+}
+
+entity "Device" as d {
+  *device_id : uuid <<generated>>
+  --
+  serial_number : text
+  status: enum
+  --
+  *house_id: uuid <<FK>>
+  *device_type_id: uuid <<FK>>
+}
+
+entity "DeviceType" as dt {
+  *device_type_id : uuid <<generated>>
+  --
+  type : text
+}
+
+entity "TelemetryData" as td {
+  *telemetry_data_id : uuid <<generated>>
+  --
+  data : json
+  --
+  *device_id: uuid <<FK>>
+}
+
+h  }|-- u
+d  }|-- h
+d  }|-- dt
+td }|-- d
+
+@enduml

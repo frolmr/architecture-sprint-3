@@ -1,0 +1,44 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+title SmartHome Container Diagram
+
+Person(User, "User", "The user of the smart home system")
+
+System_Boundary(SmartHomeSystem, "SmartHome System"){
+    Container(ApiGateway, "API Gateway", "Kong", "Routing + Balancing")
+    Container(Identity, "Identity", "User management", "Auth provider + user management")
+
+    ContainerQueue(Kafka, "Event Store", "Kafka", "Event storage for events")
+    Container(NotificationService, "Notification Service", "Consumer", "Notify users about events")
+
+    Container(DeviceManagement, "Device Management Service", "API", "Microservice for device management")
+
+    Container(Telemetry, "Telemetry Service", "API", "Microservice for telemetry")
+
+    ContainerDb(IdentityDB, "Identity DB", "PostgreSQL", "DB for users data")
+    ContainerDb(DeviceManagementDB, "Device Management DB", "PostgreSQL", "DB for devices data")
+    ContainerDb(TelemetryDB, "Telemetry DB", "ClickHouse", "DB for telemetry data")
+}
+
+System_Ext(SmartDevice, "Smart Device", "Devices that are connected to the Smart Home System")
+
+Rel(User, ApiGateway, "Make HTTP calls")
+
+Rel(SmartDevice, ApiGateway, "Sends data from devices")
+
+Rel(ApiGateway, Identity, "Auth and user management")
+Rel(Identity, IdentityDB, "Store users data")
+
+Rel(ApiGateway, DeviceManagement, "Devices REST for users")
+Rel(ApiGateway, Telemetry, "Telemetry REST for users")
+
+Rel(DeviceManagement, Kafka, "Produces devices data")
+Rel(Kafka, NotificationService, "Consumes events for users")
+Rel(NotificationService, User, "Notify user")
+
+Rel(Telemetry, TelemetryDB, "CRUD for telemetry")
+
+Rel(DeviceManagement, SmartDevice, "Sends commands")
+Rel(DeviceManagement, DeviceManagementDB, "CRUD for devices")
+@enduml

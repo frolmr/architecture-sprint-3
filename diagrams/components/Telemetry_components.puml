@@ -1,0 +1,24 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+title Telemetry Service Component Diagram
+
+Container(ApiGateway, "API Gateway", "Kong", "Routing + Balancing")
+
+Container(Telemetry, "Telemetry Service"){
+    Component(Api, "REST API", "", "Incoming requests processing")
+    Component(BusinessLogic, "Business Logic", "", "validation, logging, metrics, etc.")
+    Component(Persistence, "Persistence Layer", "", "CRUD for data")
+}
+
+ContainerDb(TelemetryDB, "Telemetry DB", "ClickHouse", "DB for telemetry data")
+
+Rel(ApiGateway, Api, "REST operations from user")
+
+Rel(Api, BusinessLogic, "process requests")
+
+Rel(BusinessLogic, Persistence, "ActiveRecord commands")
+
+Rel(Persistence, TelemetryDB, "CRUD operations")
+
+@enduml
